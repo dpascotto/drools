@@ -1,0 +1,19 @@
+package it.dpascotto.drools.examples.helloworld
+
+rule "Hello World"
+      dialect "mvel"
+  when
+      m : Message( status == Message.HELLO, message : message )
+  then
+      System.out.println(" ------------------> " + message ); 
+      	modify ( m ) { message = "Goodbyte cruel world", status = Message.GOODBYE };
+end
+
+rule "Goodbye World"
+      dialect "mvel"
+  when
+      m : Message( status == Message.GOODBYE, message : message )
+  then
+      System.out.println(" GOODBYE ------------------> " + message ); 
+      modify ( m ) { message = "Stay another while", status = Message.HELLO };
+end

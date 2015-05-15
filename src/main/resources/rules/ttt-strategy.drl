@@ -1,0 +1,13 @@
+package it.dpascotto.drools.examples.TicTacToe
+
+rule "Computer tries random move"
+dialect "java"
+
+when
+      ttt : TicTacToeGame(isUpToComputer())
+then
+	ttt.computerMoves(Util.getRandomMove());
+end
+
+
+
