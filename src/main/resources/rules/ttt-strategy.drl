@@ -2,6 +2,7 @@ package it.dpascotto.drools.examples.TicTacToe
 
 rule "When computer plays first, start in a corner"
 dialect "java"
+no-loop
 salience 0
 
 when
@@ -9,56 +10,14 @@ when
 then
 	ttt.debug("Computer starts in a corner");
 	ttt.computerMoves((String)Util.getRandomAmong("A1", "C1", "A3", "C3"));
+	update(ttt);
 	return;	
 end
 
-rule "If computer detects 2 human moves in a line, defend"
-dialect "java"
-salience 0
-
-when
-	ttt : TicTacToeGame(isUpToComputer())
-then
-		int e = -1;
-		for (int r = 0; r < 3; r++) {
-			e = ttt.getFirstEmpty(ttt.getRow(r), 2, XO.X);
-			ttt.debug("Row " + r + ", e = " + e);
-			if (e >= 0) {
-				ttt.debug("Computer defends in " + r + ", " + e);
-				ttt.computerMoves(r, e);
-				return;
-			}
-		}
-		for (int c = 0; c < 3; c++) {
-			e = ttt.getFirstEmpty(ttt.getCol(c), 2, XO.X);
-			ttt.debug("Column " + c + ", e = " + e);
-			if (e >= 0) {
-				ttt.debug("Computer defends in " + e + ", " + c);
-				ttt.computerMoves(e, c);
-				return;
-			}
-		}
-		e = ttt.getFirstEmpty(ttt.getDiagonal1(), 2, XO.X);
-		ttt.debug("Diagonal 1, e = " + e);
-		if (e >= 0) {
-			ttt.debug("Computer defends in " + e + ", " + e);
-			ttt.computerMoves(e, e);
-			return;
-		}
-		e = ttt.getFirstEmpty(ttt.getDiagonal2(), 2, XO.X);
-		ttt.debug("Diagonal 2, e = " + e);
-		if (e >= 0) {
-			ttt.debug("Computer defends in " + e + ", " + (2 - e));
-			ttt.computerMoves(e, 2 - e);
-			return;
-		}
-
-	
-		
-end
 
 rule "Computer tries random move"
 dialect "java"
+no-loop
 salience -100
 
 when
@@ -69,10 +28,150 @@ then
 		if (ttt.isEmpty(randomMove)) {
 			ttt.debug("Computer plays random move: " + randomMove);
 			ttt.computerMoves(randomMove);
-			return;
+			update(ttt);
+			break;
 		}
 	}
 		
 end
+
+//
+//	Defending rows
+//
+
+rule "Computer defends row 1"
+dialect "java"
+no-loop
+
+when
+	ttt : TicTacToeGame(isUpToComputer())
+then
+	int r = 0;
+	int e = ttt.getFirstEmpty(ttt.getRow(r), 2, XO.X);
+	if (e >= 0) {
+		ttt.debug("Computer defends in " + r + ", " + e);
+		ttt.computerMoves(r, e);
+		update(ttt);
+	}		
+end
+
+rule "Computer defends row 2"
+dialect "java"
+no-loop
+
+when
+	ttt : TicTacToeGame(isUpToComputer())
+then
+	int r = 1;
+	int e = ttt.getFirstEmpty(ttt.getRow(r), 2, XO.X);
+	if (e >= 0) {
+		ttt.debug("Computer defends in " + r + ", " + e);
+		ttt.computerMoves(r, e);
+		update(ttt);
+	}		
+end
+
+rule "Computer defends row 3"
+dialect "java"
+no-loop
+
+when
+	ttt : TicTacToeGame(isUpToComputer())
+then
+	int r = 2;
+	int e = ttt.getFirstEmpty(ttt.getRow(r), 2, XO.X);
+	if (e >= 0) {
+		ttt.debug("Computer defends in " + r + ", " + e);
+		ttt.computerMoves(r, e);
+		update(ttt);
+	}		
+end
+
+//
+//	Defending columns
+//
+
+rule "Computer defends column 1"
+dialect "java"
+no-loop
+
+when
+	ttt : TicTacToeGame(isUpToComputer())
+then
+	int c = 0;
+	int e = ttt.getFirstEmpty(ttt.getCol(c), 2, XO.X);
+	if (e >= 0) {
+		ttt.debug("Computer defends in " + e + ", " + c);
+		ttt.computerMoves(e, c);
+		update(ttt);
+	}		
+end
+
+rule "Computer defends column 2"
+dialect "java"
+no-loop
+
+when
+	ttt : TicTacToeGame(isUpToComputer())
+then
+	int c = 1;
+	int e = ttt.getFirstEmpty(ttt.getCol(c), 2, XO.X);
+	if (e >= 0) {
+		ttt.debug("Computer defends in " + e + ", " + c);
+		ttt.computerMoves(e, c);
+		update(ttt);
+	}		
+end
+
+rule "Computer defends column 3"
+dialect "java"
+no-loop
+
+when
+	ttt : TicTacToeGame(isUpToComputer())
+then
+	int c = 2;
+	int e = ttt.getFirstEmpty(ttt.getCol(c), 2, XO.X);
+	if (e >= 0) {
+		ttt.debug("Computer defends in " + e + ", " + c);
+		ttt.computerMoves(e, c);
+		update(ttt);
+	}		
+end
+
+//
+//	Defending diagonals
+//
+
+rule "Computer defends diagonal 1"
+dialect "java"
+no-loop
+
+when
+	ttt : TicTacToeGame(isUpToComputer())
+then
+	int e = ttt.getFirstEmpty(ttt.getDiagonal1(), 2, XO.X);
+	if (e >= 0) {
+		ttt.debug("Computer defends in " + e + ", " + e);
+		ttt.computerMoves(e, e);
+		update(ttt);
+	}		
+end
+
+rule "Computer defends diagonal 2"
+dialect "java"
+no-loop
+
+when
+	ttt : TicTacToeGame(isUpToComputer())
+then
+	int e = ttt.getFirstEmpty(ttt.getDiagonal2(), 2, XO.X);
+	if (e >= 0) {
+		ttt.debug("Computer defends in " + e + ", " + (2 - e));
+		ttt.computerMoves(e, (2 - e));
+		update(ttt);
+	}		
+end
+
 
 

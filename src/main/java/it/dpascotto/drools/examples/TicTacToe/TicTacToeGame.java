@@ -10,22 +10,33 @@ public class TicTacToeGame {
 	
 	public int moveCount = 0;
 	public XO playsFirst;
+	public XO lastMoved;
 	
 	public TicTacToeGame(XO first) {
 		playsFirst = first;
 	}
 
 	public XO[][] positions = new XO[3][3];
-	public XO lastMoved;
 	
 	public Status status;
 	
 	public boolean isUpToComputer() {
+		if (gameIsFinished()) {
+			return false;
+		}
+		//System.out.println("Move count: " + moveCount + ", " + playsFirst.toReadable() + " plays/ed first " + ", " + (lastMoved != null ? lastMoved.toReadable() : "nobody") + " played last");
 		if (moveCount == 0) {
 			return playsFirst.isO();
 		} else {
 			return (lastMoved != null && lastMoved.isX());
 		}
+	}
+	
+	public boolean isUpToHuman() {
+		if (gameIsFinished()) {
+			return false;
+		}
+		return !isUpToComputer();
 	}
 	
 	public String toString() {
@@ -39,7 +50,6 @@ public class TicTacToeGame {
 		sb.append("-------------" + "\r\n");
 		
 		if (debug) {
-			
 			//sb.append("Status ............ " + status + "\r\n");
 			//sb.append("Who moved last .... " + lastMoved + " (" + lastMoved.toReadable() + ")\r\n");
 		}
@@ -69,12 +79,10 @@ public class TicTacToeGame {
 	
 	public void computerMoves(String move) {
 		move(XO._O(), move);
-		acceptInputFromHuman();
-	}
+		}
 	
 	public void computerMoves(int r, int c) {
 		_move(XO._O(), r, c);
-		acceptInputFromHuman();
 	}
 	
 	public void debug(String message) {
@@ -83,15 +91,68 @@ public class TicTacToeGame {
 		}
 	}
 	
-	public void evaluateGame() {
-		
+	public boolean gameIsFinished() {
+		return (status.equals(Status.HUMAN_WINS) ||
+				status.equals(Status.COMPUTER_WINS) ||
+				status.equals(Status.DRAW));
 	}
 	
+	public void evaluateGame() {
+		Status s = null;
+		for (int r = 0; r < 3; r++) {
+			s = checkIfSomeoneWIns(getRow(r));
+			if (s != null) {
+				status = s;
+				return;
+			}
+		}
+		for (int c = 0; c < 3; c++) {
+			s = checkIfSomeoneWIns(getCol(c));
+			if (s != null) {
+				status = s;
+				return;
+			}
+		}
+		s = checkIfSomeoneWIns(getDiagonal1());
+		if (s != null) {
+			status = s;
+			return;
+		}
+		s = checkIfSomeoneWIns(getDiagonal2());
+		if (s != null) {
+			status = s;
+			return;
+		}
+		if (moveCount >= 9) {
+			status = Status.DRAW;
+		}
+	}
+	
+	public Status checkIfSomeoneWIns(XO[] arr) {
+		if (getFirstEmpty(arr, 3, XO.X) == -1) {
+			return Status.HUMAN_WINS;
+		}
+		if (getFirstEmpty(arr, 3, XO.O) == -1) {
+			return Status.COMPUTER_WINS;
+		}
+		return null;
+	}
+
+	
+	private void _print(String label, XO[] arr) {
+//		System.out.print(label + ": ");
+//		for (XO xo : arr) {
+//			System.out.print(xo.val + " ");
+//		}
+//		System.out.println();
+	}
+
 	public XO[] getRow(int r) {
 		XO[] row = new XO[3];
 		for (int c = 0; c < 3; c++) {
 			row[c] = positions[r][c];
 		}
+		_print("Row " + r, row);
 		return row;
 	}
 	
@@ -100,6 +161,7 @@ public class TicTacToeGame {
 		for (int r = 0; r < 3; r++) {
 			col[r] = positions[r][c];
 		}
+		_print("Col " + c, col);
 		return col;
 	}
 	
@@ -108,6 +170,7 @@ public class TicTacToeGame {
 		for (int d = 0; d < 3; d++) {
 			diag[d] = positions[d][d];
 		}
+		_print("Diag1", diag);
 		return diag;
 	}
 	
@@ -116,6 +179,7 @@ public class TicTacToeGame {
 		for (int d = 0; d < 3; d++) {
 			diag[d] = positions[d][2 - d];
 		}
+		_print("Diag2", diag);
 		return diag;
 	}
 	
@@ -225,8 +289,9 @@ public class TicTacToeGame {
 				return e;
 			}
 		}
-		return -1;
+		return -2;
 	}
+
 
 
 }

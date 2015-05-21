@@ -24,18 +24,30 @@ public class TicTacToeService {
 		
 		
 		while (!gameIsFinished) {
+			System.out.println("\r\n -------------> Firing rules...");
 			kSess.execute(Arrays.asList(ttt));
 			
-			gameIsFinished = (ttt.status.equals(Status.HUMAN_WINS) ||
-					ttt.status.equals(Status.COMPUTER_WINS) ||
-					ttt.status.equals(Status.DRAW));
+			if (ttt.gameIsFinished()) {
+				if (ttt.status.equals(Status.HUMAN_WINS)) {
+					System.out.println("Nice play!");
+				} else if (ttt.status.equals(Status.COMPUTER_WINS)) {
+					System.out.println("Yeah! Want a rematch?");
+				} else if (ttt.status.equals(Status.DRAW)) {
+					System.out.println("It's such a stupid game...");
+				}
+				break;
+			}
+			
+			if (ttt.isUpToHuman()) {
+				ttt.acceptInputFromHuman();
+			}
 			
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			System.out.println("\r\n -------------> Restating rules...");
+			
 		}
 		
 		

@@ -15,5 +15,5 @@ rule "Goodbye World"
       m : Message( status == Message.GOODBYE, message : message )
   then
       System.out.println(" GOODBYE ------------------> " + message ); 
-      modify ( m ) { message = "Stay another while", status = Message.HELLO };
+      //modify ( m ) { message = "Stay another while", status = Message.HELLO };
 end
