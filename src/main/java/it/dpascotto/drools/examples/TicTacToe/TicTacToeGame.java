@@ -6,7 +6,14 @@ import java.io.InputStreamReader;
 
 public class TicTacToeGame {
 	
-	public boolean debug = false;
+	public boolean debug = true;
+	
+	public int moveCount = 0;
+	public XO playsFirst;
+	
+	public TicTacToeGame(XO first) {
+		playsFirst = first;
+	}
 
 	public XO[][] positions = new XO[3][3];
 	public XO lastMoved;
@@ -14,7 +21,11 @@ public class TicTacToeGame {
 	public Status status;
 	
 	public boolean isUpToComputer() {
-		return (lastMoved != null && lastMoved.isO());
+		if (moveCount == 0) {
+			return playsFirst.isO();
+		} else {
+			return (lastMoved != null && lastMoved.isX());
+		}
 	}
 	
 	public String toString() {
@@ -29,8 +40,8 @@ public class TicTacToeGame {
 		
 		if (debug) {
 			
-			sb.append("Status ............ " + status + "\r\n");
-			sb.append("Who moved last .... " + lastMoved + " (" + lastMoved.toReadable() + ")\r\n");
+			//sb.append("Status ............ " + status + "\r\n");
+			//sb.append("Who moved last .... " + lastMoved + " (" + lastMoved.toReadable() + ")\r\n");
 		}
 		
 		return sb.toString();
@@ -61,11 +72,84 @@ public class TicTacToeGame {
 		acceptInputFromHuman();
 	}
 	
+	public void computerMoves(int r, int c) {
+		_move(XO._O(), r, c);
+		acceptInputFromHuman();
+	}
+	
+	public void debug(String message) {
+		if (debug) {
+			System.out.println(message);
+		}
+	}
+	
 	public void evaluateGame() {
 		
 	}
 	
+	public XO[] getRow(int r) {
+		XO[] row = new XO[3];
+		for (int c = 0; c < 3; c++) {
+			row[c] = positions[r][c];
+		}
+		return row;
+	}
+	
+	public XO[] getCol(int c) {
+		XO[] col = new XO[3];
+		for (int r = 0; r < 3; r++) {
+			col[r] = positions[r][c];
+		}
+		return col;
+	}
+	
+	public XO[] getDiagonal1() {
+		XO[] diag = new XO[3];
+		for (int d = 0; d < 3; d++) {
+			diag[d] = positions[d][d];
+		}
+		return diag;
+	}
+	
+	public XO[] getDiagonal2() {
+		XO[] diag = new XO[3];
+		for (int d = 0; d < 3; d++) {
+			diag[d] = positions[d][2 - d];
+		}
+		return diag;
+	}
+	
 	private void move(XO who, String move) {
+		int[] rc = translateMove(move);
+		int r = rc[0];
+		int c = rc[1];
+		
+		System.out.println(who.toReadable() + " moves to " + move + ":");
+		
+		_move(who, r, c);
+	}
+
+	private void _move(XO who, int r, int c) {
+		if (!positions[r][c].isEmpty()) {
+			throw new InvalidMoveException("Cell is not empty: [" + r + "," + c + "]");
+		}
+		
+		positions[r][c] = who;
+		lastMoved = who;
+		moveCount ++;
+		System.out.println(this);
+		evaluateGame();
+	}
+	
+	public boolean isEmpty(String move) {
+		int[] rc = translateMove(move);
+		int r = rc[0];
+		int c = rc[1];
+		
+		return positions[r][c].isEmpty();
+	}
+	
+	public int[] translateMove(String move) {
 		//
 		//	Expecting something like 'A2'
 		//
@@ -97,15 +181,7 @@ public class TicTacToeGame {
 			throw new InvalidMoveException("Your move was invalid: " + move);
 		}
 		
-		if (!positions[r][c].isEmpty()) {
-			throw new InvalidMoveException("Cell is not empty: " + move);
-		}
-		
-		System.out.println(who.toReadable() + " moves to " + move + ":");
-		positions[r][c] = who;
-		lastMoved = who;
-		System.out.println(this);
-		evaluateGame();
+		return new int[] {r, c};
 	}
 
 	public void acceptInputFromHuman() {
@@ -121,6 +197,35 @@ public class TicTacToeGame {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Checks if in the given 3-list (row, column or diagonal)
+	 * there are i occurrences of x_o
+	 * 
+	 * @param list
+	 * @param i
+	 * @param x
+	 * @return
+	 */
+	public int getFirstEmpty(XO[] list, int i, String x_o) {
+		int count = 0;
+		int e = -1;
+		for (int j = 0; j < 3; j++) {
+			if (list[j].val.equals(x_o)) {
+				count++;
+			} else {
+				if (list[j].isEmpty()) {
+					if (e < 0) { // the first NOT x_o
+						e = j;
+					}
+				}
+			}
+			if (count == i) {
+				return e;
+			}
+		}
+		return -1;
 	}
 
 

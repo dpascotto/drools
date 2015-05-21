@@ -1,13 +1,78 @@
 package it.dpascotto.drools.examples.TicTacToe
 
-rule "Computer tries random move"
+rule "When computer plays first, start in a corner"
 dialect "java"
+salience 0
 
 when
-      ttt : TicTacToeGame(isUpToComputer())
+	ttt : TicTacToeGame(moveCount == 0 && isUpToComputer())
 then
-	ttt.computerMoves(Util.getRandomMove());
+	ttt.debug("Computer starts in a corner");
+	ttt.computerMoves((String)Util.getRandomAmong("A1", "C1", "A3", "C3"));
+	return;	
 end
 
+rule "If computer detects 2 human moves in a line, defend"
+dialect "java"
+salience 0
+
+when
+	ttt : TicTacToeGame(isUpToComputer())
+then
+		int e = -1;
+		for (int r = 0; r < 3; r++) {
+			e = ttt.getFirstEmpty(ttt.getRow(r), 2, XO.X);
+			ttt.debug("Row " + r + ", e = " + e);
+			if (e >= 0) {
+				ttt.debug("Computer defends in " + r + ", " + e);
+				ttt.computerMoves(r, e);
+				return;
+			}
+		}
+		for (int c = 0; c < 3; c++) {
+			e = ttt.getFirstEmpty(ttt.getCol(c), 2, XO.X);
+			ttt.debug("Column " + c + ", e = " + e);
+			if (e >= 0) {
+				ttt.debug("Computer defends in " + e + ", " + c);
+				ttt.computerMoves(e, c);
+				return;
+			}
+		}
+		e = ttt.getFirstEmpty(ttt.getDiagonal1(), 2, XO.X);
+		ttt.debug("Diagonal 1, e = " + e);
+		if (e >= 0) {
+			ttt.debug("Computer defends in " + e + ", " + e);
+			ttt.computerMoves(e, e);
+			return;
+		}
+		e = ttt.getFirstEmpty(ttt.getDiagonal2(), 2, XO.X);
+		ttt.debug("Diagonal 2, e = " + e);
+		if (e >= 0) {
+			ttt.debug("Computer defends in " + e + ", " + (2 - e));
+			ttt.computerMoves(e, 2 - e);
+			return;
+		}
+
+	
+		
+end
+
+rule "Computer tries random move"
+dialect "java"
+salience -100
+
+when
+	ttt : TicTacToeGame(isUpToComputer())
+then
+	while (true) {
+		String randomMove = Util.getRandomMove();
+		if (ttt.isEmpty(randomMove)) {
+			ttt.debug("Computer plays random move: " + randomMove);
+			ttt.computerMoves(randomMove);
+			return;
+		}
+	}
+		
+end
 
 
