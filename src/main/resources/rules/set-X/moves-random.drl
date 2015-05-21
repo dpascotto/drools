@@ -1,0 +1,29 @@
+package it.dpascotto.drools.tictactoe
+
+import org.apache.log4j.Logger;
+
+global Logger log;
+global String player;
+
+rule "Random move"
+dialect "java"
+no-loop
+salience -10
+
+when
+	ttt : TicTacToeGame(isUpTo(player))
+then
+	while (true) {
+		String randomMove = Util.getRandomMove();
+		if (ttt.isEmpty(randomMove)) {
+			log.debug(player + " plays random move: " + randomMove);
+			ttt.move(player, randomMove);
+			update(ttt);
+			break;
+		}
+	}
+end
+
+
+
+

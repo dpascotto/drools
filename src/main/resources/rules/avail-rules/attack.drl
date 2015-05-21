@@ -1,0 +1,95 @@
+//
+//	Attacking on rows where there are 2 symbols of current player (and the remaining is empty)
+//	
+package it.dpascotto.drools.tictactoe
+
+import org.apache.log4j.Logger;
+
+global Logger log;
+global String player;
+
+//
+//	Attacking on rows
+//
+rule "Attack on rows (2 --> 3)"
+dialect "java"
+no-loop
+salience 3
+
+when
+	ttt : TicTacToeGame(isUpTo(player))
+then
+	for (int r = 0; r < 3; r++) {
+		int e = ttt.getFirstEmpty(ttt.getRow(r), 2, player);
+		if (e >= 0) {
+			log.debug("Attacking (2 --> 3) in " + r + ", " + e);
+			ttt.move(player, r, e);
+			update(ttt);
+			break;
+		}		
+	}
+end
+
+
+
+//
+//	Attacking on columns
+//
+rule "Attack on columns (2 --> 3)"
+dialect "java"
+no-loop
+salience 3
+
+when
+	ttt : TicTacToeGame(isUpTo(player))
+then
+	for (int c = 0; c < 3; c++) {
+		int e = ttt.getFirstEmpty(ttt.getCol(c), 2, player);
+		if (e >= 0) {
+			log.debug("Attacking (2 --> 3) in " + e + ", " + c);
+			ttt.move(player, e, c);
+			update(ttt);
+			break;
+		}		
+	}	
+end
+
+
+
+//
+//	Attacking on diagonals
+//
+rule "Attack on diagonal 1 (2 --> 3)"
+dialect "java"
+no-loop
+salience 3
+
+when
+	ttt : TicTacToeGame(isUpTo(player))
+then
+	int e = ttt.getFirstEmpty(ttt.getDiagonal1(), 2, player);
+	if (e >= 0) {
+		log.debug("Attacking (2 --> 3) in " + e + ", " + e);
+		ttt.move(player, e, e);
+		update(ttt);
+	}		
+end
+
+rule "Attack on diagonal 2 (2 --> 3)"
+dialect "java"
+no-loop
+salience 2
+
+when
+	ttt : TicTacToeGame(isUpTo(player))
+then
+	int e = ttt.getFirstEmpty(ttt.getDiagonal2(), 2, player);
+	if (e >= 0) {
+		log.debug("Attacking (2 --> 3) in " + e + ", " + (2 - e));
+		ttt.move(player, e, (2 - e));
+		update(ttt);
+	}		
+end
+
+
+

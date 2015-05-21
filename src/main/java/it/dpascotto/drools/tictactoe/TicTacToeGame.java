@@ -1,4 +1,4 @@
-package it.dpascotto.drools.examples.TicTacToe;
+package it.dpascotto.drools.tictactoe;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,39 +6,75 @@ import java.io.InputStreamReader;
 
 public class TicTacToeGame {
 	
-	public boolean debug = true;
+	public static final String X = "X";
+	public static final String O = "O";
+	public static final String EMPTY = " ";
+	
+	public static final String RESET = "RESET"; // Ready to (re)start
+	public static final String X_WINS = "X_WINS";
+	public static final String O_WINS = "O_WINS";
+	public static final String DRAW = "DRAW";
+	
+	public boolean debug = false;
 	
 	public int moveCount = 0;
-	public XO playsFirst;
-	public XO lastMoved;
+	public String playsFirst;
+	public String lastMoved;
 	
-	public TicTacToeGame(XO first) {
+	public TicTacToeGame(String first) {
 		playsFirst = first;
+		resetGame();
 	}
 
-	public XO[][] positions = new XO[3][3];
+	public String[][] positions = new String[3][3];
 	
-	public Status status;
+	public String status;
 	
-	public boolean isUpToComputer() {
+	public String getWinner() {
 		if (gameIsFinished()) {
+			if (X_WINS.equals(status)) {
+				return X;
+			} else if (O_WINS.equals(status)) {
+				return O;
+			} else {
+				return null;
+			}
+		}
+		return null;
+	}
+
+	public boolean isUpTo(String player) {
+		if (gameIsFinished()) {
+			//
+			//	If game is finished (someone wins or draw)
+			//	nobody has to play
+			//
 			return false;
 		}
-		//System.out.println("Move count: " + moveCount + ", " + playsFirst.toReadable() + " plays/ed first " + ", " + (lastMoved != null ? lastMoved.toReadable() : "nobody") + " played last");
 		if (moveCount == 0) {
-			return playsFirst.isO();
+			//
+			//	If game has just started, is up to the one marked as 'plays first'
+			//
+			return playsFirst.equalsIgnoreCase(player);
 		} else {
-			return (lastMoved != null && lastMoved.isX());
+			//
+			//	If game is going on, is up to the other
+			//
+			String up2 = lastMoved.equalsIgnoreCase(X) ? O : X;
+			return up2.equalsIgnoreCase(player);
 		}
+	
 	}
 	
-	public boolean isUpToHuman() {
-		if (gameIsFinished()) {
-			return false;
+	public String otherPlayer(String player) {
+		if (player.equalsIgnoreCase(TicTacToeGame.X)) {
+			return TicTacToeGame.O;
+		} else if (player.equalsIgnoreCase(TicTacToeGame.O)) {
+			return TicTacToeGame.X;
 		}
-		return !isUpToComputer();
+		return null;
 	}
-	
+
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		
@@ -49,56 +85,36 @@ public class TicTacToeGame {
 		sb.append(" 3 | " + positions[2][0] + "  " + positions[2][1] + "  " + positions[2][2] + "\r\n");
 		sb.append("-------------" + "\r\n");
 		
-		if (debug) {
-			//sb.append("Status ............ " + status + "\r\n");
-			//sb.append("Who moved last .... " + lastMoved + " (" + lastMoved.toReadable() + ")\r\n");
-		}
-		
 		return sb.toString();
 	}
 	
 	public void resetGame() {
 		resetPositions();
 		
-		status = Status.RESET;
-		System.out.println("Game reset:");
-		System.out.println(this);
+		status = RESET;
+		
+		if (debug) {
+			System.out.println("Game reset:");
+			System.out.println(this);
+		}
 	}
 	
 	public void resetPositions() {
 		for (int r = 0; r < 3; r++) {
 			for (int c = 0; c < 3; c++) { 
-				positions[r][c] = XO._EMPTY();
+				positions[r][c] = EMPTY;
 			}
 		}
 	}
 	
-	public void humanMoves(String move) {
-		move(XO._X(), move);
-	}
-	
-	public void computerMoves(String move) {
-		move(XO._O(), move);
-		}
-	
-	public void computerMoves(int r, int c) {
-		_move(XO._O(), r, c);
-	}
-	
-	public void debug(String message) {
-		if (debug) {
-			System.out.println(message);
-		}
-	}
-	
 	public boolean gameIsFinished() {
-		return (status.equals(Status.HUMAN_WINS) ||
-				status.equals(Status.COMPUTER_WINS) ||
-				status.equals(Status.DRAW));
+		return (status.equals(X_WINS) ||
+				status.equals(O_WINS) ||
+				status.equals(DRAW));
 	}
 	
 	public void evaluateGame() {
-		Status s = null;
+		String s = null;
 		for (int r = 0; r < 3; r++) {
 			s = checkIfSomeoneWIns(getRow(r));
 			if (s != null) {
@@ -124,31 +140,33 @@ public class TicTacToeGame {
 			return;
 		}
 		if (moveCount >= 9) {
-			status = Status.DRAW;
+			status = DRAW;
 		}
 	}
 	
-	public Status checkIfSomeoneWIns(XO[] arr) {
-		if (getFirstEmpty(arr, 3, XO.X) == -1) {
-			return Status.HUMAN_WINS;
+	public String checkIfSomeoneWIns(String[] arr) {
+		if (getFirstEmpty(arr, 3, X) == -1) {
+			return X_WINS;
 		}
-		if (getFirstEmpty(arr, 3, XO.O) == -1) {
-			return Status.COMPUTER_WINS;
+		if (getFirstEmpty(arr, 3, O) == -1) {
+			return O_WINS;
 		}
 		return null;
 	}
 
 	
-	private void _print(String label, XO[] arr) {
-//		System.out.print(label + ": ");
-//		for (XO xo : arr) {
-//			System.out.print(xo.val + " ");
-//		}
-//		System.out.println();
+	private void _print(String label, String[] arr) {
+		/*
+		System.out.print(label + ": ");
+		for (String xo : arr) {
+			System.out.print(xo + " ");
+		}
+		System.out.println();
+		*/
 	}
 
-	public XO[] getRow(int r) {
-		XO[] row = new XO[3];
+	public String[] getRow(int r) {
+		String[] row = new String[3];
 		for (int c = 0; c < 3; c++) {
 			row[c] = positions[r][c];
 		}
@@ -156,8 +174,8 @@ public class TicTacToeGame {
 		return row;
 	}
 	
-	public XO[] getCol(int c) {
-		XO[] col = new XO[3];
+	public String[] getCol(int c) {
+		String[] col = new String[3];
 		for (int r = 0; r < 3; r++) {
 			col[r] = positions[r][c];
 		}
@@ -165,8 +183,8 @@ public class TicTacToeGame {
 		return col;
 	}
 	
-	public XO[] getDiagonal1() {
-		XO[] diag = new XO[3];
+	public String[] getDiagonal1() {
+		String[] diag = new String[3];
 		for (int d = 0; d < 3; d++) {
 			diag[d] = positions[d][d];
 		}
@@ -174,8 +192,8 @@ public class TicTacToeGame {
 		return diag;
 	}
 	
-	public XO[] getDiagonal2() {
-		XO[] diag = new XO[3];
+	public String[] getDiagonal2() {
+		String[] diag = new String[3];
 		for (int d = 0; d < 3; d++) {
 			diag[d] = positions[d][2 - d];
 		}
@@ -183,25 +201,37 @@ public class TicTacToeGame {
 		return diag;
 	}
 	
-	private void move(XO who, String move) {
+	/**
+	 * Version for 'humans' (move smthg like A1 B2 etc.)
+	 * 
+	 * @param who
+	 * @param move
+	 */
+	public void move(String who, String move) {
 		int[] rc = translateMove(move);
 		int r = rc[0];
 		int c = rc[1];
 		
-		System.out.println(who.toReadable() + " moves to " + move + ":");
+		System.out.println(who + " moves to " + move + ":");
 		
-		_move(who, r, c);
+		move(who, r, c);
 	}
 
-	private void _move(XO who, int r, int c) {
-		if (!positions[r][c].isEmpty()) {
+	public void move(String who, int r, int c) {
+		if (!isUpTo(who)) {
+			throw new InvalidMoveException(who + " requested to move but iy's not up to him/her");
+		}
+		
+		if (!positions[r][c].equalsIgnoreCase(EMPTY)) {
 			throw new InvalidMoveException("Cell is not empty: [" + r + "," + c + "]");
 		}
 		
 		positions[r][c] = who;
 		lastMoved = who;
 		moveCount ++;
-		System.out.println(this);
+		if (debug) {
+			System.out.println(this);
+		}
 		evaluateGame();
 	}
 	
@@ -210,7 +240,7 @@ public class TicTacToeGame {
 		int r = rc[0];
 		int c = rc[1];
 		
-		return positions[r][c].isEmpty();
+		return positions[r][c].equalsIgnoreCase(EMPTY);
 	}
 	
 	public int[] translateMove(String move) {
@@ -248,16 +278,16 @@ public class TicTacToeGame {
 		return new int[] {r, c};
 	}
 
-	public void acceptInputFromHuman() {
+	public void acceptInputFromHuman__() {
 		BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
 	    try {
 	    	System.out.print("Human, make your move: ");
 			String move = bufferRead.readLine();
 			
-			humanMoves(move);
+			//humanMoves(move);
 		} catch (InvalidMoveException e) {
 			System.out.print("Human, your move was invalid");
-			acceptInputFromHuman();
+			acceptInputFromHuman__();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -272,14 +302,14 @@ public class TicTacToeGame {
 	 * @param x
 	 * @return
 	 */
-	public int getFirstEmpty(XO[] list, int i, String x_o) {
+	public int getFirstEmpty(String[] list, int i, String x_o) {
 		int count = 0;
 		int e = -1;
 		for (int j = 0; j < 3; j++) {
-			if (list[j].val.equals(x_o)) {
+			if (list[j].equals(x_o)) {
 				count++;
 			} else {
-				if (list[j].isEmpty()) {
+				if (list[j].equalsIgnoreCase(EMPTY)) {
 					if (e < 0) { // the first NOT x_o
 						e = j;
 					}
@@ -290,6 +320,17 @@ public class TicTacToeGame {
 			}
 		}
 		return -2;
+	}
+	
+	public static void main(String[] args) {
+		TicTacToeGame tttg = new TicTacToeGame(O); // O plays first
+		
+		tttg.move(O, "A1");
+		tttg.move(X, "A2");
+		tttg.move(O, "B1");
+		tttg.move(X, "B3");
+		tttg.move(O, "C1");
+		tttg.move(X, "B2");
 	}
 
 

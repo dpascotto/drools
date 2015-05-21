@@ -1,0 +1,23 @@
+package it.dpascotto.drools.tictactoe
+
+import org.apache.log4j.Logger;
+
+global Logger log;
+global String player;
+
+rule "First player moves in a corner"
+dialect "java"
+no-loop
+salience 0
+
+when
+	ttt : TicTacToeGame(moveCount == 0 && isUpTo(player))
+then
+	log.debug(player + " starts in a corner");
+	ttt.move(player, (String)Util.getRandomAmong("A1", "C1", "A3", "C3"));
+	update(ttt);
+end
+
+
+
+
